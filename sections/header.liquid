@@ -1,0 +1,413 @@
+{{ 'header.css' | asset_url | stylesheet_tag }}
+
+<div class="header-wrapper">
+  <header class="header" id="SiteHeader">
+    <!-- Desktop Navigation -->
+    <nav class="navbar" role="navigation" aria-label="Main navigation">
+      <div class="navbar-content">
+        <!-- Logo and Links Container -->
+        <div class="logo-link-container">
+          <!-- Logo -->
+          <div class="logo-container">
+            <a href="{{ routes.root_url }}" class="logo-link">
+              {% if settings.logo != blank %}
+                <img src="{{ settings.logo | image_url: width: 200 }}" 
+                     alt="{{ shop.name }}" 
+                     class="logo-image"
+                     width="{{ settings.logo.width }}"
+                     height="{{ settings.logo.height }}"
+                     loading="lazy">
+              {% else %}
+                <span class="logo-text">{{ shop.name }}</span>
+              {% endif %}
+            </a>
+          </div>
+
+          <!-- Navigation Links -->
+          <div class="link-container">
+            <ul class="nav-links" role="list">
+              <li>
+                <a href="{{ routes.root_url }}" 
+                   {% if request.page_type == 'index' %}aria-current="page"{% endif %}>
+                  HOME
+                </a>
+              </li>
+              <li>
+                <a href="{{ routes.collections_url }}" 
+                   {% if request.page_type == 'collection' %}aria-current="page"{% endif %}>
+                  SHOP
+                </a>
+              </li>
+              <li>
+                <a href="{{ blog.url }}" 
+                   {% if request.page_type == 'blog' or request.page_type == 'article' %}aria-current="page"{% endif %}>
+                  BLOG
+                </a>
+              </li>
+              {% for link in linklists.main-menu.links %}
+                {% if link.title == 'About' or link.title == 'Contact' %}
+                  <li>
+                    <a href="{{ link.url }}" 
+                       {% if link.active %}aria-current="page"{% endif %}>
+                      {{ link.title | upcase }}
+                    </a>
+                  </li>
+                {% endif %}
+              {% endfor %}
+            </ul>
+          </div>
+        </div>
+
+        <!-- Icon Container -->
+        <div class="icon-container">
+          <!-- Search Icon -->
+          <button type="button" 
+                  class="icon-btn search-btn" 
+                  aria-label="Search products"
+                  onclick="openSearch()">
+            {% render 'icon-search' %}
+          </button>
+
+          <!-- Account Icon -->
+          <a href="{{ routes.account_url }}" 
+             class="icon-btn account-btn" 
+             aria-label="Account">
+            {% render 'icon-account' %}
+          </a>
+
+          <!-- Cart Icon -->
+          <a href="{{ routes.cart_url }}" 
+             class="icon-btn cart-btn" 
+             aria-label="Cart ({{ cart.item_count }} items)">
+            <div class="cart-icon-wrapper">
+              {% render 'icon-cart' %}
+              <span class="cart-count" id="cart-icon-bubble">
+                {{ cart.item_count }}
+              </span>
+            </div>
+          </a>
+
+          <!-- Wishlist Icon -->
+          <button type="button" 
+                  class="icon-btn wishlist-btn" 
+                  aria-label="Wishlist"
+                  onclick="toggleWishlist()">
+            {% render 'icon-heart' %}
+          </button>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Mobile Navigation -->
+    <nav class="mobile-nav" role="navigation" aria-label="Mobile navigation">
+      <div class="mobile-nav-content">
+        <!-- Mobile Menu Button -->
+        <button type="button" 
+                class="mobile-menu-btn" 
+                aria-label="Toggle mobile menu"
+                aria-expanded="false"
+                onclick="toggleMobileMenu()">
+          <span class="hamburger-icon">
+            <span></span>
+            <span></span>
+            <span></span>
+          </span>
+          <span class="close-icon" style="display: none;">
+            {% render 'icon-close' %}
+          </span>
+        </button>
+
+        <!-- Mobile Logo -->
+        <div class="mobile-logo-container">
+          <a href="{{ routes.root_url }}" class="mobile-logo-link">
+            {% if settings.logo != blank %}
+              <img src="{{ settings.logo | image_url: width: 150 }}" 
+                   alt="{{ shop.name }}" 
+                   class="mobile-logo-image"
+                   loading="lazy">
+            {% else %}
+              <span class="mobile-logo-text">{{ shop.name }}</span>
+            {% endif %}
+          </a>
+        </div>
+
+        <!-- Mobile Cart Icon -->
+        <a href="{{ routes.cart_url }}" 
+           class="mobile-cart-btn" 
+           aria-label="Cart ({{ cart.item_count }} items)">
+          <div class="mobile-cart-icon-wrapper">
+            {% render 'icon-cart' %}
+            <span class="mobile-cart-count">{{ cart.item_count }}</span>
+          </div>
+        </a>
+      </div>
+
+      <!-- Mobile Menu Overlay -->
+      <div class="mobile-menu-overlay" id="mobile-menu-overlay" style="display: none;">
+        <div class="mobile-menu-content">
+          <!-- Mobile Search -->
+          <div class="mobile-search-bar">
+            <form action="{{ routes.search_url }}" method="get" class="search-form">
+              <input type="search" 
+                     name="q" 
+                     placeholder="Search products" 
+                     value="{{ search.terms | escape }}"
+                     class="mobile-search-input">
+              <button type="submit" class="mobile-search-btn" aria-label="Search">
+                {% render 'icon-search' %}
+              </button>
+            </form>
+          </div>
+
+          <!-- Mobile Menu Links -->
+          <div class="mobile-menu-list">
+            <ul role="list">
+              <li>
+                <a href="{{ routes.root_url }}" onclick="closeMobileMenu()">HOME</a>
+              </li>
+              <li>
+                <a href="{{ routes.collections_url }}" onclick="closeMobileMenu()">SHOP</a>
+              </li>
+              <li>
+                <a href="{{ blog.url }}" onclick="closeMobileMenu()">BLOG</a>
+              </li>
+              {% for link in linklists.main-menu.links %}
+                {% if link.title == 'About' or link.title == 'Contact' %}
+                  <li>
+                    <a href="{{ link.url }}" onclick="closeMobileMenu()">
+                      {{ link.title | upcase }}
+                    </a>
+                  </li>
+                {% endif %}
+              {% endfor %}
+            </ul>
+          </div>
+
+          <!-- Mobile Menu Footer -->
+          <div class="mobile-menu-footer">
+            <!-- Account Link -->
+            <div class="mobile-menu-account">
+              <a href="{{ routes.account_url }}" onclick="closeMobileMenu()">
+                {% render 'icon-account' %}
+                <span>My Account</span>
+              </a>
+            </div>
+
+            <!-- Language and Currency -->
+            <div class="mobile-menu-lang-currency">
+              {% if settings.enable_country_selector and localization.available_countries.size > 1 %}
+                <div class="mobile-menu-country">
+                  <span>Country</span>
+                  <localization-form>
+                    <select name="country_code" onchange="this.form.submit()">
+                      {% for country in localization.available_countries %}
+                        <option value="{{ country.iso_code }}" 
+                                {% if country.iso_code == localization.country.iso_code %}selected{% endif %}>
+                          {{ country.name }} ({{ country.currency.iso_code }} {{ country.currency.symbol }})
+                        </option>
+                      {% endfor %}
+                    </select>
+                  </localization-form>
+                </div>
+              {% endif %}
+
+              {% if settings.enable_language_selector and localization.available_languages.size > 1 %}
+                <div class="mobile-menu-language">
+                  <span>Language</span>
+                  <localization-form>
+                    <select name="locale_code" onchange="this.form.submit()">
+                      {% for language in localization.available_languages %}
+                        <option value="{{ language.iso_code }}" 
+                                {% if language.iso_code == localization.language.iso_code %}selected{% endif %}>
+                          {{ language.endonym_name | capitalize }}
+                        </option>
+                      {% endfor %}
+                    </select>
+                  </localization-form>
+                </div>
+              {% endif %}
+            </div>
+
+            <!-- Social Media Links -->
+            {% if settings.social_facebook_link != blank or settings.social_instagram_link != blank or settings.social_twitter_link != blank %}
+              <div class="mobile-menu-social">
+                {% if settings.social_facebook_link != blank %}
+                  <a href="{{ settings.social_facebook_link }}" 
+                     target="_blank" 
+                     rel="noopener" 
+                     aria-label="Facebook">
+                    {% render 'icon-facebook' %}
+                  </a>
+                {% endif %}
+                {% if settings.social_twitter_link != blank %}
+                  <a href="{{ settings.social_twitter_link }}" 
+                     target="_blank" 
+                     rel="noopener" 
+                     aria-label="Twitter">
+                    {% render 'icon-twitter' %}
+                  </a>
+                {% endif %}
+                {% if settings.social_instagram_link != blank %}
+                  <a href="{{ settings.social_instagram_link }}" 
+                     target="_blank" 
+                     rel="noopener" 
+                     aria-label="Instagram">
+                    {% render 'icon-instagram' %}
+                  </a>
+                {% endif %}
+                {% if settings.social_youtube_link != blank %}
+                  <a href="{{ settings.social_youtube_link }}" 
+                     target="_blank" 
+                     rel="noopener" 
+                     aria-label="YouTube">
+                    {% render 'icon-youtube' %}
+                  </a>
+                {% endif %}
+                {% if settings.social_pinterest_link != blank %}
+                  <a href="{{ settings.social_pinterest_link }}" 
+                     target="_blank" 
+                     rel="noopener" 
+                     aria-label="Pinterest">
+                    {% render 'icon-pinterest' %}
+                  </a>
+                {% endif %}
+              </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </nav>
+  </header>
+</div>
+
+<script>
+  // Mobile Menu Toggle
+  function toggleMobileMenu() {
+    const overlay = document.getElementById('mobile-menu-overlay');
+    const menuBtn = document.querySelector('.mobile-menu-btn');
+    const hamburgerIcon = menuBtn.querySelector('.hamburger-icon');
+    const closeIcon = menuBtn.querySelector('.close-icon');
+    const isOpen = overlay.style.display === 'block';
+
+    if (isOpen) {
+      closeMobileMenu();
+    } else {
+      openMobileMenu();
+    }
+  }
+
+  function openMobileMenu() {
+    const overlay = document.getElementById('mobile-menu-overlay');
+    const menuBtn = document.querySelector('.mobile-menu-btn');
+    const hamburgerIcon = menuBtn.querySelector('.hamburger-icon');
+    const closeIcon = menuBtn.querySelector('.close-icon');
+
+    overlay.style.display = 'block';
+    hamburgerIcon.style.display = 'none';
+    closeIcon.style.display = 'block';
+    menuBtn.setAttribute('aria-expanded', 'true');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeMobileMenu() {
+    const overlay = document.getElementById('mobile-menu-overlay');
+    const menuBtn = document.querySelector('.mobile-menu-btn');
+    const hamburgerIcon = menuBtn.querySelector('.hamburger-icon');
+    const closeIcon = menuBtn.querySelector('.close-icon');
+
+    overlay.style.display = 'none';
+    hamburgerIcon.style.display = 'block';
+    closeIcon.style.display = 'none';
+    menuBtn.setAttribute('aria-expanded', 'false');
+    document.body.style.overflow = 'auto';
+  }
+
+  // Search functionality (placeholder)
+  function openSearch() {
+    // Implement search modal or redirect to search page
+    window.location.href = '{{ routes.search_url }}';
+  }
+
+  // Wishlist functionality (placeholder)
+  function toggleWishlist() {
+    // Implement wishlist functionality
+    console.log('Wishlist toggled');
+  }
+
+  // Update cart count when cart changes
+  document.addEventListener('DOMContentLoaded', function() {
+    // Listen for cart updates
+    document.addEventListener('cart:updated', function(event) {
+      const cartCounts = document.querySelectorAll('.cart-count, .mobile-cart-count');
+      cartCounts.forEach(count => {
+        count.textContent = event.detail.item_count;
+      });
+    });
+  });
+</script>
+
+{% schema %}
+{
+  "name": "Header",
+  "settings": [
+    {
+      "type": "image_picker",
+      "id": "logo",
+      "label": "Logo"
+    },
+    {
+      "type": "text",
+      "id": "menu",
+      "label": "Menu",
+      "default": "main-menu"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_sticky_header",
+      "label": "Enable sticky header",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_country_selector",
+      "label": "Enable country/region selector",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_language_selector",
+      "label": "Enable language selector",
+      "default": true
+    },
+    {
+      "type": "header",
+      "content": "Social Media"
+    },
+    {
+      "type": "url",
+      "id": "social_facebook_link",
+      "label": "Facebook"
+    },
+    {
+      "type": "url",
+      "id": "social_instagram_link",
+      "label": "Instagram"
+    },
+    {
+      "type": "url",
+      "id": "social_twitter_link",
+      "label": "Twitter"
+    },
+    {
+      "type": "url",
+      "id": "social_youtube_link",
+      "label": "YouTube"
+    },
+    {
+      "type": "url",
+      "id": "social_pinterest_link",
+      "label": "Pinterest"
+    }
+  ]
+}
+{% endschema %}

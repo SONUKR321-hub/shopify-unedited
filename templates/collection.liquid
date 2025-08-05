@@ -1,0 +1,286 @@
+{% comment %}
+  Collection page template
+{% endcomment %}
+
+<div class="collection-page">
+  <div class="container">
+    <div class="collection-header">
+      <h1 class="collection-title">{{ collection.title }}</h1>
+      {% if collection.description != blank %}
+        <div class="collection-description">
+          {{ collection.description }}
+        </div>
+      {% endif %}
+    </div>
+
+    <div class="collection-filters">
+      <div class="filter-sort">
+        <select name="sort_by" id="sort-by">
+          <option value="manual">Featured</option>
+          <option value="best-selling">Best Selling</option>
+          <option value="title-ascending">Alphabetically, A-Z</option>
+          <option value="title-descending">Alphabetically, Z-A</option>
+          <option value="price-ascending">Price, low to high</option>
+          <option value="price-descending">Price, high to low</option>
+          <option value="created-ascending">Date, old to new</option>
+          <option value="created-descending">Date, new to old</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="collection-products">
+      <div class="products-grid">
+        {% for product in collection.products %}
+          <div class="product-card">
+            <div class="product-card-image">
+              <a href="{{ product.url }}">
+                {% if product.featured_media %}
+                  <img src="{{ product.featured_media | image_url: width: 400 }}" 
+                       alt="{{ product.featured_media.alt | escape }}"
+                       loading="lazy">
+                {% else %}
+                  <div class="placeholder-image">No Image</div>
+                {% endif %}
+              </a>
+              {% if product.tags contains 'sale' %}
+                <span class="product-badge sale">Sale</span>
+              {% endif %}
+            </div>
+            <div class="product-card-content">
+              <h3 class="product-card-title">
+                <a href="{{ product.url }}">{{ product.title }}</a>
+              </h3>
+              <div class="product-card-price">
+                {% if product.compare_at_price > product.price %}
+                  <span class="price-sale">{{ product.price | money }}</span>
+                  <span class="price-compare">{{ product.compare_at_price | money }}</span>
+                {% else %}
+                  <span class="price">{{ product.price | money }}</span>
+                {% endif %}
+              </div>
+              <button class="btn btn-secondary quick-add-btn" 
+                      data-product-id="{{ product.id }}">
+                Quick Add
+              </button>
+            </div>
+          </div>
+        {% else %}
+          <div class="empty-collection">
+            <h2>No products found</h2>
+            <p>This collection is empty.</p>
+            <a href="{{ routes.collections_url }}" class="btn btn-primary">
+              Browse All Collections
+            </a>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    {% if paginate.pages > 1 %}
+      <nav class="pagination" role="navigation" aria-label="Pagination">
+        {% if paginate.previous %}
+          <a href="{{ paginate.previous.url }}" class="pagination-btn prev">
+            Previous
+          </a>
+        {% endif %}
+
+        {% for part in paginate.parts %}
+          {% if part.is_link %}
+            <a href="{{ part.url }}" class="pagination-number">{{ part.title }}</a>
+          {% else %}
+            {% if part.title == paginate.current_page %}
+              <span class="pagination-number current">{{ part.title }}</span>
+            {% else %}
+              <span class="pagination-gap">{{ part.title }}</span>
+            {% endif %}
+          {% endif %}
+        {% endfor %}
+
+        {% if paginate.next %}
+          <a href="{{ paginate.next.url }}" class="pagination-btn next">
+            Next
+          </a>
+        {% endif %}
+      </nav>
+    {% endif %}
+  </div>
+</div>
+
+<style>
+.collection-page {
+  padding: 60px 0;
+}
+
+.collection-header {
+  text-align: center;
+  margin-bottom: 60px;
+}
+
+.collection-title {
+  font-size: 2.5rem;
+  margin-bottom: 20px;
+}
+
+.collection-description {
+  font-size: 1.1rem;
+  color: #666;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.collection-filters {
+  margin-bottom: 40px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.filter-sort select {
+  padding: 10px 15px;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  background: white;
+  font-size: 14px;
+}
+
+.products-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 30px;
+  margin-bottom: 60px;
+}
+
+.product-card {
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  overflow: hidden;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.product-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
+.product-card-image {
+  position: relative;
+  overflow: hidden;
+  aspect-ratio: 1;
+}
+
+.product-card-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.product-card:hover .product-card-image img {
+  transform: scale(1.05);
+}
+
+.product-badge {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  background: #ff4444;
+  color: white;
+  padding: 5px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.product-card-content {
+  padding: 20px;
+}
+
+.product-card-title a {
+  text-decoration: none;
+  color: #1b1b1b;
+  font-weight: 600;
+  font-size: 16px;
+}
+
+.product-card-price {
+  margin: 10px 0;
+  font-weight: 700;
+}
+
+.price-sale {
+  color: #ff4444;
+  margin-right: 10px;
+}
+
+.price-compare {
+  color: #999;
+  text-decoration: line-through;
+}
+
+.quick-add-btn {
+  width: 100%;
+  margin-top: 15px;
+}
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  margin-top: 40px;
+}
+
+.pagination-number,
+.pagination-btn {
+  padding: 10px 15px;
+  text-decoration: none;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  color: #1b1b1b;
+  transition: all 0.3s ease;
+}
+
+.pagination-number:hover,
+.pagination-btn:hover {
+  background: #1b1b1b;
+  color: white;
+}
+
+.pagination-number.current {
+  background: #1b1b1b;
+  color: white;
+}
+
+.empty-collection {
+  text-align: center;
+  padding: 80px 20px;
+}
+
+@media screen and (max-width: 768px) {
+  .products-grid {
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+  }
+  
+  .collection-title {
+    font-size: 2rem;
+  }
+}
+</style>
+
+<script>
+// Sort functionality
+document.getElementById('sort-by').addEventListener('change', function() {
+  const url = new URL(window.location);
+  url.searchParams.set('sort_by', this.value);
+  window.location = url;
+});
+
+// Quick add functionality
+document.querySelectorAll('.quick-add-btn').forEach(btn => {
+  btn.addEventListener('click', function() {
+    const productId = this.dataset.productId;
+    // Implement quick add to cart functionality
+    console.log('Quick add product:', productId);
+  });
+});
+</script>
