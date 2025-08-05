@@ -1,0 +1,208 @@
+{%- liquid
+  assign products_to_show = section.settings.products_to_show | default: 4
+  assign heading = section.settings.heading | default: 'Featured Products'
+  assign collection = collections[section.settings.collection] | default: collections.all
+-%}
+
+<div class="featured-products section-{{ section.id }}-padding">
+  <div class="page-width">
+    {%- if heading != blank -%}
+      <div class="title-wrapper-with-link title-wrapper--self-padded-mobile title-wrapper--no-top-margin">
+        <h2 id="SectionHeading-{{ section.id }}" class="title inline-richtext {{ section.settings.heading_size }}">
+          {{ heading }}
+        </h2>
+        {%- if section.settings.show_view_all and collection.products_count > products_to_show -%}
+          <a href="{{ collection.url }}" class="link underlined-link large-up-hide" id="ViewAll-{{ section.id }}">
+            {{ 'sections.featured_collection.view_all' | t }}
+          </a>
+        {%- endif -%}
+      </div>
+    {%- endif -%}
+
+    <div class="collection grid grid--1-col grid--2-col-tablet grid--{{ products_to_show }}-col-desktop">
+      {%- for product in collection.products limit: products_to_show -%}
+        <div class="grid__item">
+          <div class="card-wrapper underline-links-hover">
+            <div class="card card--standard card--media">
+              <div class="card__inner">
+                <div class="card__media">
+                  <div class="media media--transparent media--hover-effect">
+                    {%- if product.featured_media -%}
+                      <img
+                        srcset="{%- if product.featured_media.width >= 165 -%}{{ product.featured_media | image_url: width: 165 }} 165w,{%- endif -%}
+                                {%- if product.featured_media.width >= 360 -%}{{ product.featured_media | image_url: width: 360 }} 360w,{%- endif -%}
+                                {%- if product.featured_media.width >= 533 -%}{{ product.featured_media | image_url: width: 533 }} 533w,{%- endif -%}
+                                {%- if product.featured_media.width >= 720 -%}{{ product.featured_media | image_url: width: 720 }} 720w,{%- endif -%}
+                                {%- if product.featured_media.width >= 940 -%}{{ product.featured_media | image_url: width: 940 }} 940w,{%- endif -%}
+                                {%- if product.featured_media.width >= 1066 -%}{{ product.featured_media | image_url: width: 1066 }} 1066w,{%- endif -%}
+                                {{ product.featured_media | image_url }} {{ product.featured_media.width }}w"
+                        src="{{ product.featured_media | image_url: width: 533 }}"
+                        sizes="(min-width: {{ settings.page_width }}px) {{ settings.page_width | minus: 130 | divided_by: 4 }}px, (min-width: 990px) calc((100vw - 130px) / 4), (min-width: 750px) calc((100vw - 120px) / 3), calc((100vw - 35px) / 2)"
+                        alt="{{ product.featured_media.alt | escape }}"
+                        class="motion-reduce"
+                        loading="lazy"
+                        width="{{ product.featured_media.width }}"
+                        height="{{ product.featured_media.height }}"
+                      >
+                    {%- else -%}
+                      {{ 'product-1' | placeholder_svg_tag: 'placeholder-svg' }}
+                    {%- endif -%}
+                  </div>
+                </div>
+                <div class="card__content">
+                  <div class="card__information">
+                    <h3 class="card__heading">
+                      <a href="{{ product.url }}" class="full-unstyled-link">
+                        {{ product.title | escape }}
+                      </a>
+                    </h3>
+                    <div class="card__badge">
+                      {%- if product.available == false -%}
+                        <span class="badge badge--bottom-left color-{{ settings.sold_out_badge_color_scheme }}">{{ 'products.product.sold_out' | t }}</span>
+                      {%- elsif product.compare_at_price > product.price and product.available -%}
+                        <span class="badge badge--bottom-left color-{{ settings.sale_badge_color_scheme }}">{{ 'products.product.on_sale' | t }}</span>
+                      {%- endif -%}
+                    </div>
+                  </div>
+                  <div class="card__content">
+                    {% render 'price', product: product, price_class: '' %}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      {%- else -%}
+        {%- for i in (1..products_to_show) -%}
+          <div class="grid__item">
+            <div class="card-wrapper underline-links-hover">
+              <div class="card card--standard card--media">
+                <div class="card__inner">
+                  <div class="card__media">
+                    <div class="media media--transparent">
+                      {{ 'product-' | append: forloop.index | placeholder_svg_tag: 'placeholder-svg' }}
+                    </div>
+                  </div>
+                  <div class="card__content">
+                    <div class="card__information">
+                      <h3 class="card__heading">
+                        <a href="#" class="full-unstyled-link">
+                          Example Product {{ forloop.index }}
+                        </a>
+                      </h3>
+                    </div>
+                    <div class="card__content">
+                      <div class="price">
+                        <span class="price__regular">
+                          <span class="price-item price-item--regular">
+                            $19.99
+                          </span>
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        {%- endfor -%}
+      {%- endfor -%}
+    </div>
+
+    {%- if section.settings.show_view_all and collection.products_count > products_to_show -%}
+      <div class="center collection__view-all small-hide medium-hide">
+        <a href="{{ collection.url }}" class="button" id="ViewAllDesktop-{{ section.id }}">
+          {{ 'sections.featured_collection.view_all' | t }}
+        </a>
+      </div>
+    {%- endif -%}
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "Featured Products",
+  "tag": "section",
+  "class": "section",
+  "disabled_on": {
+    "groups": ["header", "footer"]
+  },
+  "settings": [
+    {
+      "type": "inline_richtext",
+      "id": "heading",
+      "default": "Featured Products",
+      "label": "Heading"
+    },
+    {
+      "type": "select",
+      "id": "heading_size",
+      "options": [
+        {
+          "value": "h2",
+          "label": "Small"
+        },
+        {
+          "value": "h1",
+          "label": "Medium"
+        },
+        {
+          "value": "h0",
+          "label": "Large"
+        }
+      ],
+      "default": "h1",
+      "label": "Heading size"
+    },
+    {
+      "type": "collection",
+      "id": "collection",
+      "label": "Collection"
+    },
+    {
+      "type": "range",
+      "id": "products_to_show",
+      "min": 2,
+      "max": 8,
+      "step": 1,
+      "default": 4,
+      "label": "Number of products to show"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_view_all",
+      "default": true,
+      "label": "Show 'View all' button"
+    },
+    {
+      "type": "header",
+      "content": "Section padding"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "label": "Top padding",
+      "default": 36
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "label": "Bottom padding",
+      "default": 36
+    }
+  ],
+  "presets": [
+    {
+      "name": "Featured Products"
+    }
+  ]
+}
+{% endschema %}
